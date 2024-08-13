@@ -1,0 +1,161 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Snake Game</title>
+    <style>
+        body {
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            height: 100vh;
+            margin: 0;
+            font-family: Arial, sans-serif;
+            font-size: 16px;
+            background-image: url('https://wallpapers.com/images/hd/snake-game-scales-0r8mpi8r1ik79ktu.jpg');
+        }
+
+        h1 {
+            margin-bottom: 20px;
+            color: red;
+        }
+
+        canvas {
+            background-color: #000;
+        }
+
+        #customAlert {
+            display: none;
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background-color: white;
+            padding: 20px;
+            box-shadow: 0px 0px 10px rgba(0, 0, 0, 0.5);
+            text-align: center;
+        }
+
+        #customAlert button {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+
+<body>
+    <h1>Snake Game</h1>
+    <canvas id="gameCanvas" width="400" height="400"></canvas>
+
+    <div id="customAlert">
+        <p>Game Over!</p>
+        <button onclick="redirectToHome()">OK</button>
+    </div>
+
+    <script>
+        const canvas = document.getElementById('gameCanvas');
+        const ctx = canvas.getContext('2d');
+
+        const box = 20;
+        let snake = [{ x: 9 * box, y: 10 * box }];
+        let food = generateFood();
+        let score = 0;
+        let direction;
+        let playTime = 120;
+        let timerInterval;
+
+        document.addEventListener('keydown', setDirection);
+
+        function setDirection(event) {
+            const key = event.keyCode;
+            if (key === 37 && direction !== 'RIGHT') direction = 'LEFT';
+            else if (key === 38 && direction !== 'DOWN') direction = 'UP';
+            else if (key === 39 && direction !== 'LEFT') direction = 'RIGHT';
+            else if (key === 40 && direction !== 'UP') direction = 'DOWN';
+        }
+
+        function generateFood() {
+            return {
+                x: Math.floor(Math.random() * 19 + 1) * box,
+                y: Math.floor(Math.random() * 19 + 1) * box
+            };
+        }
+
+        function collision(newHead, array) {
+            return array.some(segment => segment.x === newHead.x && segment.y === newHead.y);
+        }
+
+        function draw() {
+            ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+            snake.forEach((segment, index) => {
+                ctx.fillStyle = index === 0 ? 'green' : 'white';
+                ctx.fillRect(segment.x, segment.y, box, box);
+                ctx.strokeStyle = 'yellow';
+                ctx.strokeRect(segment.x, segment.y, box, box);
+            });
+
+            ctx.fillStyle = 'yellow';
+            ctx.fillRect(food.x, food.y, box, box);
+
+            let snakeX = snake[0].x;
+            let snakeY = snake[0].y;
+
+            if (direction === 'LEFT') snakeX -= box;
+            if (direction === 'UP') snakeY -= box;
+            if (direction === 'RIGHT') snakeX += box;
+            if (direction === 'DOWN') snakeY += box;
+
+            if (snakeX === food.x && snakeY === food.y) {
+                score++;
+                food = generateFood();
+            } else {
+                snake.pop();
+            }
+
+            let newHead = { x: snakeX, y: snakeY };
+
+            if (snakeX < 0 || snakeY < 0 || snakeX >= canvas.width || snakeY >= canvas.height || collision(newHead, snake)) {
+                clearInterval(game);
+                clearInterval(timerInterval);
+                showCustomAlert();
+                return;
+            }
+
+            snake.unshift(newHead);
+
+            ctx.fillStyle = 'white';
+            ctx.font = '20px Changa one';
+            ctx.fillText(score, 2 * box, 1.6 * box);
+
+            const minutes = Math.floor(playTime / 60);
+            const seconds = playTime % 60;
+            ctx.fillText(`Time: ${minutes}:${seconds < 10 ? '0' : ''}${seconds}`, 12 * box, 1.6 * box);
+        }
+
+        function updateTimer() {
+            if (playTime > 0) {
+                playTime--;
+            } else {
+                clearInterval(game);
+                clearInterval(timerInterval);
+                showCustomAlert();
+            }
+        }
+
+        function showCustomAlert() {
+            document.getElementById('customAlert').style.display = 'block';
+        }
+
+        function redirectToHome() {
+            window.location.href = "{% url 'home' %}";
+        }
+
+        timerInterval = setInterval(updateTimer, 1000);
+        let game = setInterval(draw, 100);
+    </script>
+</body>
+
+</html>

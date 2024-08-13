@@ -1,0 +1,62 @@
+{% extends 'base.html' %} 
+{% load static %} 
+{% block content %}
+<section class='text-center container'>
+    <h2>Student Dictionary</h2>
+    <p>Enter any word to get the phonetics, definition and an example for the word</p>
+    <form action="" method="post">
+        {% csrf_token %}
+        {{form}}
+        <input class="btn btn-danger" type="submit" value="Submit">
+    </form><br>
+    <div class="content-section p-0 mt-5">
+        {% if input %}
+        <div class="custom-header">
+            <h2>{{ input }}</h2>
+            <h6>{{ phonetics }}</h6>
+            <audio id="player" src="{{ audio }}"></audio>
+            <div>
+                <a id="play-button" style="cursor: pointer;">
+                    <i class='fa fa-volume-up fa-2x'></i>
+                </a>
+            </div>
+        </div>
+        
+        <script>
+        document.getElementById('play-button').addEventListener('click', function() {
+            var audio = document.getElementById('player');
+            if (audio) {
+                audio.play().catch(function(error) {
+                    console.error('Error playing audio:', error);
+                });
+            } else {
+                console.error('Audio element not found or audio source is missing');
+            }
+        });
+        </script>
+        
+        
+        
+
+        <hr class="p-0 m-0">
+
+        <p class="float-left">
+            <h4>Definition: {{definition}}</h4>
+            <h4>Example: {{example}}</h4>
+        </p>
+        {% if synonyms %}
+        <h4>Synonyms:</h4>
+        <ul>
+            {% for synonym in synonyms %}
+                <li>{{ synonym }}</li>
+            {% endfor %}
+        </ul>
+    {% else %}
+        <p>No synonyms found.</p>
+    {% endif %}
+        <hr>
+    </div>
+    
+    {% endif %}
+</section>
+{% endblock content %}
